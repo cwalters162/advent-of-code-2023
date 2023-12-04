@@ -7,10 +7,11 @@ fn main() {
     let contents = fs::read_to_string(file_path).expect("Should have been able to read the file");
 
     let result = process(&contents);
-    println!("Sum of Engine Part Numbers: {}", result);
+    println!("Sum of Engine Part Numbers: {}", result.0);
+    println!("Sum of Gear Numbers: {}", result.1);
 }
 
-fn process(content: &String) -> u32 {
+fn process(content: &String) -> (u32, u32) {
     let lines = content.split("\n").collect::<Vec<&str>>();
     let cmp_lines = lines.clone();
     //iterate over each char in the line with the index and see if it is a numeric.
@@ -79,7 +80,7 @@ fn process(content: &String) -> u32 {
     let flat = validated_chars.iter().flatten().collect::<Vec<&u32>>();
     let result_sum: u32 = flat.iter().copied().clone().sum();
     dbg!(&flat);
-    result_sum
+    (result_sum, 0u32)
 }
 
 fn check_neighbors(r: usize, c: usize, lines: &Vec<&str>) -> bool {
@@ -184,6 +185,12 @@ struct CharMetadata {
 #[test]
 fn test_part_1() {
     let content = "467..114..\n...*......\n..35..633.\n......#...\n617*......\n.....+.58.\n..592.....\n......755.\n...$.*....\n.664.598..".to_string();
-    let result = process(&content);
+    let (result, _) = process(&content);
+    assert_eq!(result, 4361);
+}
+#[test]
+fn test_part_2() {
+    let content = "467..114..\n...*......\n..35..633.\n......#...\n617*......\n.....+.58.\n..592.....\n......755.\n...$.*....\n.664.598..".to_string();
+    let (_, result) = process(&content);
     assert_eq!(result, 4361);
 }
