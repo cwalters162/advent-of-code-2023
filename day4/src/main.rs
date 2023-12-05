@@ -38,8 +38,9 @@ fn part1(content: String) -> (i32, i32) {
     let game_ids = parse_game_id(&split_on_colon);
 
     let game_results = parse_game_results(&split_on_colon);
+
     let game_results_sum = game_results.iter().sum();
-    dbg!(game_results);
+
     (game_results_sum, 0)
 }
 
@@ -73,18 +74,20 @@ fn parse_game_results(split_on_colon: &Vec<Vec<&str>>) -> Vec<i32> {
     for (i, game) in winning_values.iter().enumerate() {
         let mut scores_matching = 0;
         for wv in game {
-            for cv in card_values[i].iter() {
-                if wv == cv {
-                    scores_matching += 1;
-                } else {
-                    continue
-                }
+            if card_values[i].contains(wv) {
+                scores_matching += 1
             }
         }
         match scores_matching {
-            0 => card_scores.push(0),
-            1 => card_scores.push(1),
-            2 => card_scores.push(2),
+            0 => {
+                card_scores.push(0)
+            },
+            1 => {
+                card_scores.push(1)
+            },
+            2 => {
+                card_scores.push(2)
+            },
             _ => card_scores.push(double_n_times(scores_matching)),
         }
     }
@@ -94,8 +97,8 @@ fn parse_game_results(split_on_colon: &Vec<Vec<&str>>) -> Vec<i32> {
 
 fn double_n_times(amount: i32) -> i32 {
     let mut value = 1;
-    for _ in 1..=amount {
-        value = amount * 2;
+    for _ in 1..amount {
+        value = value * 2;
     }
     value
 }
