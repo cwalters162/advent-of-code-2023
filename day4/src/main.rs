@@ -31,68 +31,93 @@ Card   3: 16 58 72 77  1 67 33 82 68  7 | 16 37 15 75 78  1 49 82 22 45 83 58 77
 fn part1(content: String) -> (i32, i32) {
     let lines = content.split("\n").collect::<Vec<_>>();
 
-    let split_on_colon = lines.iter().map(|game| {
-        game.split(":").collect::<Vec<_>>()
+    let split_on_colon = lines.iter().map(|card| {
+        card.split(":").collect::<Vec<_>>()
     }).collect::<Vec<_>>();
 
-    let game_ids = parse_game_id(&split_on_colon);
+    let cards = parse_into_cards(&split_on_colon);
 
-    let game_results = parse_game_results(&split_on_colon);
+    let part_1_results = cards.iter().map(|card| {
+        if card.number_matching_values > 2 {
+            double_n_times(card.number_matching_values)
+        } else {
+            card.number_matching_values
+        }
+    }).collect::<Vec<i32>>().iter().sum::<i32>();
 
-    let game_results_sum = game_results.iter().sum();
+    let part_2_results = part_2(&cards);
 
-    (game_results_sum, 0)
+    (part_1_results, part_2_results)
 }
 
-fn parse_game_id(left_of_colon: &Vec<Vec<&str>>) -> Vec<usize> {
-    let game_id_split = left_of_colon.iter().map(|game| {
-        game[0].split_whitespace().collect::<Vec<_>>()
-    }).collect::<Vec<_>>();
-    let game_ids = game_id_split.into_iter().map(|game_id| {
-        game_id[1].parse::<usize>().unwrap()
-    }).collect::<Vec<_>>();
-    game_ids
+fn part_2(global_cards: &Vec<Card>) -> i32 {
+    //for each card, get the number of wins, recursively do it to all the cards
+    let card_values = Vec::<i32>::new();
+    let _ = global_cards.iter().map(|card| {
+        let new_cards= Vec::<Card>::new();
+
+        for i in 0..card.number_matching_values {
+            if i + card.id > (global_cards.len() - 1) as i32 {
+
+            }
+        }
+    })
+
+    dbg!(thing);
+    0
 }
 
-fn parse_game_results(split_on_colon: &Vec<Vec<&str>>) -> Vec<i32> {
-    let no_game_ids = split_on_colon.iter().map(|game| {
-        game[1]
+fn parse_card_id(left_of_colon: &Vec<Vec<&str>>) -> Vec<i32> {
+    let card_id_split = left_of_colon.iter().map(|card| {
+        card[0].split_whitespace().collect::<Vec<_>>()
+    }).collect::<Vec<_>>();
+    let card_ids = card_id_split.into_iter().map(|card_id| {
+        card_id[1].parse::<i32>().unwrap()
+    }).collect::<Vec<_>>();
+    card_ids
+}
+
+fn parse_into_cards(split_on_colon: &Vec<Vec<&str>>) -> Vec<Card> {
+    let mut cards = Vec::<Card>::new();
+
+    let card_ids = parse_card_id(&split_on_colon);
+
+    let no_card_ids = split_on_colon.iter().map(|card| {
+        card[1]
     }).collect::<Vec<_>>();
 
-    let winning_values = no_game_ids.iter().map(|game| {
-        let split_values = game.split("|").collect::<Vec<_>>();
-        split_values[0].split_whitespace().collect::<Vec<_>>()
+    let winning_values = no_card_ids.iter().map(|card| {
+        let split_values = card.split("|").collect::<Vec<_>>();
+        let str_values = split_values[0].split_whitespace().collect::<Vec<_>>();
+
+        str_values.iter().map(|value| {
+            value.parse::<i32>().unwrap()
+        }).collect::<Vec<_>>()
+
     }).collect::<Vec<_>>();
 
-    let card_values = no_game_ids.iter().map(|game| {
-        let split_values = game.split("|").collect::<Vec<_>>();
-        split_values[1].split_whitespace().collect::<Vec<_>>()
+    let card_values = no_card_ids.iter().map(|card| {
+        let split_values = card.split("|").collect::<Vec<_>>();
+        let str_values = split_values[1].split_whitespace().collect::<Vec<_>>();
+
+        str_values.iter().map(|value| {
+            value.parse::<i32>().unwrap()
+        }).collect::<Vec<_>>()
+
     }).collect::<Vec<_>>();
 
-    let mut card_scores = Vec::new();
 
-    for (i, game) in winning_values.iter().enumerate() {
+    for (i, card_id) in card_ids.iter().enumerate() {
         let mut scores_matching = 0;
-        for wv in game {
-            if card_values[i].contains(wv) {
+        for wv in winning_values[i].iter() {
+            if card_values[i].contains(&wv) {
                 scores_matching += 1
             }
         }
-        match scores_matching {
-            0 => {
-                card_scores.push(0)
-            },
-            1 => {
-                card_scores.push(1)
-            },
-            2 => {
-                card_scores.push(2)
-            },
-            _ => card_scores.push(double_n_times(scores_matching)),
-        }
+        cards.push(Card::new(card_id.clone(), winning_values[i].clone(), card_values[i].clone(), scores_matching))
     }
 
-    card_scores
+    cards
 }
 
 fn double_n_times(amount: i32) -> i32 {
@@ -101,4 +126,38 @@ fn double_n_times(amount: i32) -> i32 {
         value = value * 2;
     }
     value
+}
+
+struct Card {
+    pub id: i32,
+    pub winning_values: Vec<i32>,
+    pub card_values: Vec<i32>,
+    pub number_matching_values: i32,
+}
+
+impl Card {
+    fn new(
+        id: i32,
+        winning_values: Vec<i32>,
+        card_values: Vec<i32>,
+        number_matching_values: i32
+    ) -> Card {
+        Card {
+            id,
+            winning_values,
+            card_values,
+            number_matching_values,
+        }
+    }
+}
+
+impl Default for Card {
+    fn default() -> Self {
+        Card {
+            id: 0,
+            winning_values: Vec::<i32>::new(),
+            card_values: Vec::<i32>::new(),
+            number_matching_values: 0,
+        }
+    }
 }
