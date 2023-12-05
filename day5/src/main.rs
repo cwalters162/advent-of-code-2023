@@ -1,5 +1,5 @@
-use std::{env, fs};
 use std::num::ParseIntError;
+use std::{env, fs};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -22,23 +22,23 @@ fn main() {
 }
 
 fn process_seeds(file_path_prefix: &String) -> Vec<i32> {
-    let file_path = file_path_prefix.clone().push_str("/1seeds.txt");
+    let mut file_path = file_path_prefix.clone();
+    file_path.push_str("/1seeds.txt");
     dbg!(&file_path);
-    let contents = fs::read_to_string(file_path).expect("Should have been able to read the file");
+    let contents = fs::read_to_string(file_path)
+        .expect("Cannot find 1seeds.txt. Please ensure it is in the directory provided");
     let split_on_whitespace = contents.split_whitespace().collect::<Vec<_>>();
-    let parse_to_numbers = split_on_whitespace.iter().filter_map(|possible_number| {
-        let maybe_number = possible_number.parse::<i32>();
-        match maybe_number {
-            Ok(_) => {
-                Some(maybe_number.unwrap())
+    let parse_to_numbers = split_on_whitespace
+        .iter()
+        .filter_map(|possible_number| {
+            let maybe_number = possible_number.parse::<i32>();
+            match maybe_number {
+                Ok(_) => Some(maybe_number.unwrap()),
+                Err(_) => None,
             }
-            Err(_) => {
-                None
-            }
-        }
-    }).collect::<Vec<_>>();
-    dbg!(parse_to_numbers);
-    vec![0,0,0]
+        })
+        .collect::<Vec<_>>();
+    parse_to_numbers
 }
 
 // fn process_seed_to_soil(file_path: &String) -> Vec<i32> {
