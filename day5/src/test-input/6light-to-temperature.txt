@@ -1,0 +1,4 @@
+light-to-temperature map:
+45 77 23
+81 45 19
+68 64 13

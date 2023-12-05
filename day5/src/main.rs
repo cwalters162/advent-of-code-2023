@@ -1,16 +1,47 @@
 use std::{env, fs};
+use std::num::ParseIntError;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
     dbg!(&args);
     let file_path = &args[1];
+
+    let seeds = process_seeds(&file_path);
+    //let seed_to_soil = process_seeds();
+    //let soil_to_fertilizer = process_seeds();
+    //let fertilizer_to_water = process_seeds();
+    //let water-to-light = process_seeds();
+    //let light-to-temperature = process_seeds();
+    //let temperature-to-humidity = process_seeds();
+    //let humidity-to-location = process_seeds();
+    //process all maps
+
+    // let result = process(&contents);
+    // println!("Lowest Location: {}", result.0);
+    // println!("TBD: {}", result.1);
+}
+
+fn process_seeds(file_path_prefix: &String) -> Vec<i32> {
+    let file_path = file_path_prefix.clone().push_str("/1seeds.txt");
+    dbg!(&file_path);
     let contents = fs::read_to_string(file_path).expect("Should have been able to read the file");
-
-    let result = process(&contents);
-    println!("Sum of Game IDs: {}", result.0);
-    println!("Sum of Cube Powers: {}", result.1);
+    let split_on_whitespace = contents.split_whitespace().collect::<Vec<_>>();
+    let parse_to_numbers = split_on_whitespace.iter().filter_map(|possible_number| {
+        let maybe_number = possible_number.parse::<i32>();
+        match maybe_number {
+            Ok(_) => {
+                Some(maybe_number.unwrap())
+            }
+            Err(_) => {
+                None
+            }
+        }
+    }).collect::<Vec<_>>();
+    dbg!(parse_to_numbers);
+    vec![0,0,0]
 }
 
-fn process(p0: &String) -> _ {
-    todo!()
-}
+// fn process_seed_to_soil(file_path: &String) -> Vec<i32> {
+//     let contents = fs::read_to_string(file_path).expect("Should have been able to read the file");
+//     let lines = contents.split("\n").collect::<Vec<_>>();
+// }
