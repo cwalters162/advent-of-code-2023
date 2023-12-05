@@ -14,10 +14,7 @@ fn main() {
 fn process(content: &String) -> (u32, u32) {
     let lines = content.split("\n").collect::<Vec<&str>>();
     let cmp_lines = lines.clone();
-    //iterate over each char in the line with the index and see if it is a numeric.
-    //if it is a numeric save the char and compare it to all of it's neighbors.
-    //if one of the neighbors save that number as valid, if the a period is reached without finding
-    //a neighboring symbel toss the preceeding numbers.
+
     let rows_of_dirty_not_validated_numbers: Vec<_> = lines
         .iter()
         .enumerate()
@@ -65,7 +62,7 @@ fn process(content: &String) -> (u32, u32) {
                         .collect::<Vec<&CharMetadata>>();
                     if result.len() >= 1 {
                         let mut number_string = String::new();
-                        let thing: Vec<_> = chars.iter().map(|c| number_string.push(c.c)).collect();
+                        let _ = chars.iter().map(|c| number_string.push(c.c)).collect::<Vec<_>>();
                         let number: u32 = number_string.parse().unwrap();
                         Some(number)
                     } else {
@@ -79,7 +76,7 @@ fn process(content: &String) -> (u32, u32) {
 
     let flat = validated_chars.iter().flatten().collect::<Vec<&u32>>();
     let result_sum: u32 = flat.iter().copied().clone().sum();
-    dbg!(&flat);
+
     (result_sum, 0u32)
 }
 
