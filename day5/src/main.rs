@@ -69,32 +69,22 @@ fn map_source_to_destination(path_to_mapping_file: &str, input_for_mapping: Vec<
 
     let mut source_to_destination_results = Vec::<usize>::new();
 
-    let mut source_destination_hashmap = HashMap::<usize, usize>::new();
-
-    println!("Mapping over to build hashmaps.");
-    //Why did this take me over an hour to figure out???
-    //How do I make this faster?!!
-    for mapping in source_destination_items.iter() {
-        let d_start = mapping.destination_start;
-        let s_start = mapping.source_start;
-        let range_length = mapping.range_length;
-
-
-
-        for i in 0..range_length {
-            let percent_complete = (i as f64 / range_length as f64) * 100.0;
-            println!("Percent complete: {:.1$}%", percent_complete, 2);
-
-            source_destination_hashmap.insert(s_start+i, d_start+i);
-        }
-    }
-
     println!("Processing through the source to build output values.");
-    for source in input_for_mapping.iter() {
-        let destination = source_destination_hashmap.get(source);
-        match destination {
-            Some(_) => source_to_destination_results.push(destination.unwrap().clone()),
-            None => source_to_destination_results.push(source.clone())
+    for &source in input_for_mapping.iter() {
+        let mut was_inserted = false;
+        for item in source_destination_items.iter() {
+            let is_source_between = source >= item.source_start && source <= (item.source_start + item.range_length);
+            if is_source_between {
+                let number = source - item.source_start;
+                let value_to_push = number + item.destination_start;
+                was_inserted = true;
+                source_to_destination_results.push(value_to_push)
+            }
+        }
+        if was_inserted {
+            continue
+        } else {
+            source_to_destination_results.push(source);
         }
     }
 
