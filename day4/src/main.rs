@@ -1,5 +1,4 @@
 use std::{env, fs};
-use std::collections::HashMap;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -7,16 +6,16 @@ fn main() {
     let file_path = &args[1];
     let contents = fs::read_to_string(file_path).expect("Should have been able to read the file");
 
-    let result = part1(contents);
+    let result = process(contents);
     println!("Sum of Winning Scratchcards: {}", result.0);
-    println!("TDB: {}.", result.1);
+    println!("Sum of Cards: {}.", result.1);
 }
 
 
 #[test]
 fn test_part_1() {
     let content = "Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53\nCard 2: 13 32 20 16 61 | 61 30 68 82 17 32 24 19\nCard 3:  1 21 53 59 44 | 69 82 63 72 16 21 14  1\nCard 4: 41 92 73 84 69 | 59 84 76 51 58  5 54 83\nCard 5: 87 83 26 28 32 | 88 30 70 12 93 22 82 36\nCard 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11".to_string();
-    let (part1, _) = part1(content);
+    let (part1, _) = process(content);
     assert_eq!(part1, 13)
 }
 
@@ -25,17 +24,17 @@ fn test_part_1_again() {
     let content = "Card   1:  8 86 59 90 68 52 55 24 37 69 | 10 55  8 86  6 62 69 68 59 37 91 90 24 22 78 61 58 89 52 96 95 94 13 36 81
 Card   2:  6 42 98  5 17 31 13 36 63 61 | 99 88 14 20 63  5 56 33  6 21 92 13 17  7 31 93 30 74 98 15 11 36 61 42 47
 Card   3: 16 58 72 77  1 67 33 82 68  7 | 16 37 15 75 78  1 49 82 22 45 83 58 77 79 50 88 98 67 33 72 42 29 35  7 68".to_string();
-    let (part1, _) = part1(content);
+    let (part1, _) = process(content);
     assert_eq!(part1, 13)
 }
-fn part1(content: String) -> (i32, i32) {
+fn process(content: String) -> (i32, i32) {
     let lines = content.split("\n").collect::<Vec<_>>();
 
     let split_on_colon = lines.iter().map(|card| {
         card.split(":").collect::<Vec<_>>()
     }).collect::<Vec<_>>();
 
-    let cards = parse_into_cards(&split_on_colon);
+    let mut cards = parse_into_cards(&split_on_colon);
 
     let part_1_results = cards.iter().map(|card| {
         if card.number_matching_values > 2 {
@@ -45,26 +44,33 @@ fn part1(content: String) -> (i32, i32) {
         }
     }).collect::<Vec<i32>>().iter().sum::<i32>();
 
-    let part_2_results = part_2(&cards);
+    let part_2_results = part_2(cards);
 
     (part_1_results, part_2_results)
 }
 
-fn part_2(global_cards: &Vec<Card>) -> i32 {
-    //for each card, get the number of wins, recursively do it to all the cards
-    let card_values = Vec::<i32>::new();
-    let _ = global_cards.iter().map(|card| {
-        let new_cards= Vec::<Card>::new();
+fn part_2(global_cards: Vec<Card>) -> i32 {
+    fn process_cards(acc: i32, mut global_cards: &mut Vec<Card>, reference_cards: Vec<Card>) -> i32 {
+        println!("Processed {} cards. Remaining: {:?}", &acc, &global_cards.len());
 
-        for i in 0..card.number_matching_values {
-            if i + card.id > (global_cards.len() - 1) as i32 {
+        if global_cards.len() == 0 {
+            return acc
+        }
 
+        let current_card = global_cards.remove(0);
+        println!("Processing Card: {}.", &current_card.id);
+
+        for i in 0..current_card.number_matching_values {
+            let next_card_index = current_card.id + i;
+            if i < global_cards.len() as i32 {
+                let next_card: Card = reference_cards[next_card_index as usize].clone();
+                global_cards.push(next_card);
             }
         }
-    })
 
-    dbg!(thing);
-    0
+        process_cards(acc + 1, global_cards, reference_cards)
+    }
+    return process_cards(0, &mut global_cards.clone(), global_cards)
 }
 
 fn parse_card_id(left_of_colon: &Vec<Vec<&str>>) -> Vec<i32> {
@@ -128,11 +134,13 @@ fn double_n_times(amount: i32) -> i32 {
     value
 }
 
+#[derive(Clone, Debug)]
 struct Card {
     pub id: i32,
     pub winning_values: Vec<i32>,
     pub card_values: Vec<i32>,
     pub number_matching_values: i32,
+    pub count: i32,
 }
 
 impl Card {
@@ -147,6 +155,7 @@ impl Card {
             winning_values,
             card_values,
             number_matching_values,
+            count: 1,
         }
     }
 }
@@ -158,6 +167,7 @@ impl Default for Card {
             winning_values: Vec::<i32>::new(),
             card_values: Vec::<i32>::new(),
             number_matching_values: 0,
+            count: 0,
         }
     }
 }
