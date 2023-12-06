@@ -1,20 +1,27 @@
-use std::{env, fs};
-use std::collections::HashMap;
+use std::{fs};
+use std::collections::VecDeque;
 
 fn main() {
     let paths = [
-        "src/input/1seeds.txt",
-        "src/input/2seed-to-soil.txt",
-        "src/input/3soil-to-fertilizer.txt",
-        "src/input/4fertilizer-to-water.txt",
-        "src/input/5water-to-light.txt",
-        "src/input/6light-to-temperature.txt",
-        "src/input/7temperature-to-humidity.txt",
-        "src/input/8humidity-to-location.txt",
+        "src/test-input/1seeds.txt",
+        "src/test-input/2seed-to-soil.txt",
+        "src/test-input/3soil-to-fertilizer.txt",
+        "src/test-input/4fertilizer-to-water.txt",
+        "src/test-input/5water-to-light.txt",
+        "src/test-input/6light-to-temperature.txt",
+        "src/test-input/7temperature-to-humidity.txt",
+        "src/test-input/8humidity-to-location.txt",
     ];
+    let part1result = part1(paths);
+    let part2result = part2(paths);
+    println!("Part 1 Lowest Location: {}", part1result);
+    println!("Part 2 Lowest Location: {}", part2result);
+}
+
+fn part1(paths: [&str; 8]) -> usize {
     println!("Processing seeds.");
-    let seeds = process_seeds(paths[0]);
-    println!("Processing seds to soil.");
+    let seeds = process_seeds_part_1(paths[0]);
+    println!("Processing seeds to soil.");
     let seed_to_soil = map_source_to_destination(paths[1], seeds);
     println!("Processing soil to fertilizer.");
     let soil_to_fertilizer = map_source_to_destination(paths[2], seed_to_soil);
@@ -28,12 +35,10 @@ fn main() {
     let temperature_to_humidity = map_source_to_destination(paths[6], light_to_temperature);
     println!("Processing humidity to location.");
     let humidity_to_location = map_source_to_destination(paths[7], temperature_to_humidity);
-
-    println!("Lowest Location: {}", humidity_to_location.iter().min().unwrap());
-    // println!("TBD: {}", result.1);
+    humidity_to_location.iter().min().unwrap().clone()
 }
 
-fn process_seeds(file_path: &str) -> Vec<usize> {
+fn process_seeds_part_1(file_path: &str) -> Vec<usize> {
     let contents = fs::read_to_string(file_path)
         .expect("Cannot find 1seeds.txt. Please ensure it is in the directory provided");
     let split_on_whitespace = contents.split_whitespace().collect::<Vec<_>>();
@@ -49,6 +54,48 @@ fn process_seeds(file_path: &str) -> Vec<usize> {
         .collect::<Vec<_>>();
     println!("Finished processing seeds");
     parse_to_numbers
+}
+
+fn part2(paths: [&str; 8]) -> usize {
+    println!("Processing seeds.");
+    let seeds = process_part_2(paths[0]);
+    // println!("Processing seeds to soil.");
+    // let seed_to_soil = map_source_to_destination(paths[1], seeds);
+    // println!("Processing soil to fertilizer.");
+    // let soil_to_fertilizer = map_source_to_destination(paths[2], seed_to_soil);
+    // println!("Processing fertilizer to water.");
+    // let fertilizer_to_water = map_source_to_destination(paths[3], soil_to_fertilizer);
+    // println!("Processing water to light.");
+    // let water_to_light = map_source_to_destination(paths[4], fertilizer_to_water);
+    // println!("Processing light to temperature.");
+    // let light_to_temperature = map_source_to_destination(paths[5], water_to_light);
+    // println!("Processing temperature to humidity.");
+    // let temperature_to_humidity = map_source_to_destination(paths[6], light_to_temperature);
+    // println!("Processing humidity to location.");
+    // let humidity_to_location = map_source_to_destination(paths[7], temperature_to_humidity);
+    // humidity_to_location.iter().min().unwrap().clone()
+    0
+}
+
+
+fn process_part_2(file_path: &str) -> Vec<SeedRange> {
+    let contents = fs::read_to_string(file_path)
+        .expect("Cannot find file. Please ensure it is in the directory provided");
+    let mut split_on_whitespace = contents.split_whitespace().collect::<VecDeque<_>>();
+    split_on_whitespace.pop_front();
+    let mut seed_ranges = Vec::<SeedRange>::new();
+    let mut i = 0;
+    while i < split_on_whitespace.len() - 1 {
+        let start = split_on_whitespace[i].parse::<usize>().unwrap();
+        let length = split_on_whitespace[i + 1].parse::<usize>().unwrap();
+        let new_seed_range = SeedRange::new(start, length);
+        seed_ranges.push(new_seed_range);
+        i += 1;
+    }
+
+    println!("Finished processing");
+    dbg!(&seed_ranges);
+    seed_ranges
 }
 
 fn map_source_to_destination(path_to_mapping_file: &str, input_for_mapping: Vec<usize>) -> Vec<usize> {
@@ -104,6 +151,21 @@ impl SourceDestinationItem {
             destination_start,
             source_start,
             range_length,
+        }
+    }
+}
+
+#[derive(Debug)]
+struct SeedRange {
+    start: usize,
+    length: usize
+}
+
+impl SeedRange {
+    fn new(start: usize, length: usize) -> SeedRange {
+        SeedRange {
+            start,
+            length,
         }
     }
 }
