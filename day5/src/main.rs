@@ -1,5 +1,6 @@
 use std::num::ParseIntError;
 use std::{env, fs};
+use std::collections::HashMap;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -7,7 +8,7 @@ fn main() {
     let file_path = &args[1];
 
     let seeds = process_seeds(&file_path);
-    //let seed_to_soil = process_seeds();
+    let seed_to_soil = process_seed_to_soil(&file_path, seeds);
     //let soil_to_fertilizer = process_seeds();
     //let fertilizer_to_water = process_seeds();
     //let water-to-light = process_seeds();
@@ -24,7 +25,7 @@ fn main() {
 fn process_seeds(file_path_prefix: &String) -> Vec<i32> {
     let mut file_path = file_path_prefix.clone();
     file_path.push_str("/1seeds.txt");
-    dbg!(&file_path);
+
     let contents = fs::read_to_string(file_path)
         .expect("Cannot find 1seeds.txt. Please ensure it is in the directory provided");
     let split_on_whitespace = contents.split_whitespace().collect::<Vec<_>>();
@@ -41,7 +42,71 @@ fn process_seeds(file_path_prefix: &String) -> Vec<i32> {
     parse_to_numbers
 }
 
+fn process_seed_to_soil(file_path_prefix: &String, seeds: Vec<i32>) -> Vec<i32> {
+    let mut file_path = file_path_prefix.clone();
+    file_path.push_str("/2seed-to-soil.txt");
+    let contents = fs::read_to_string(file_path)
+        .expect("Cannot find 1seeds.txt. Please ensure it is in the directory provided");
+    let removed_returns = contents.replace("\r", "");
+    let mut lines = removed_returns.split("\n").collect::<Vec<_>>();
+    lines.remove(0);
+    let removed_whitespace = lines.iter().map(|line| line.split_whitespace().collect::<Vec<_>>()).collect::<Vec<_>>();
+    let seed_soil_mapping = removed_whitespace.iter().map(|line| {
+        let destination_start = line[0].parse::<i32>().unwrap();
+        let source_start = line[1].parse::<i32>().unwrap();
+        let range_length = line[2].parse::<i32>().unwrap();
+
+        SeedSoilMapItem::new(destination_start,source_start, range_length)
+    }).collect::<Vec<_>>();
+
+    let mut seed_to_soil_results = Vec::<i32>::new();
+
+    let mut seed_soil_map = HashMap::<i32, i32>::new();
+
+    //Why did this take me over an hour to figure out???
+    for mapping in seed_soil_mapping {
+        let d_start = mapping.destination_start;
+        let s_start = mapping.source_start;
+        let range_length = mapping.range_length;
+
+        for i in 0..range_length {
+            seed_soil_map.insert(s_start+i, d_start+i);
+        }
+    }
+
+
+    for source_seed in seeds.iter() {
+        let destination = seed_soil_map.get(source_seed);
+        match destination {
+            Some(_) => seed_to_soil_results.push(destination.unwrap().clone()),
+            None => seed_to_soil_results.push(source_seed.clone())
+        }
+    }
+
+    seed_to_soil_results
+}
+
+
+
+
 // fn process_seed_to_soil(file_path: &String) -> Vec<i32> {
 //     let contents = fs::read_to_string(file_path).expect("Should have been able to read the file");
 //     let lines = contents.split("\n").collect::<Vec<_>>();
 // }
+
+#[derive(Debug)]
+struct SeedSoilMapItem {
+    destination_start: i32,
+    source_start: i32,
+    range_length: i32
+}
+
+impl SeedSoilMapItem {
+    fn new(destination_start: i32, source_start: i32, range_length: i32) -> SeedSoilMapItem {
+        SeedSoilMapItem {
+            destination_start,
+            source_start,
+            range_length,
+        }
+    }
+}
