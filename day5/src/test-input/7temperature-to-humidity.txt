@@ -1,0 +1,3 @@
+temperature-to-humidity map:
+0 69 1
+1 0 69
