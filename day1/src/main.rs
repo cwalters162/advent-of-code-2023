@@ -2,8 +2,6 @@ use std::ops::Add;
 use std::{env, fs};
 use std::collections::HashMap;
 
-//test should be 353
-
 fn main() {
     let args: Vec<String> = env::args().collect();
     dbg!(&args);
