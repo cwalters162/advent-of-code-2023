@@ -49,28 +49,19 @@ fn process(content: String) -> (i32, i32) {
     (part_1_results, part_2_results)
 }
 
-fn part_2(global_cards: Vec<Card>) -> i32 {
-    fn process_cards(acc: i32, mut global_cards: &mut Vec<Card>, reference_cards: Vec<Card>) -> i32 {
-        println!("Processed {} cards. Remaining: {:?}", &acc, &global_cards.len());
-
-        if global_cards.len() == 0 {
-            return acc
+fn part_2(mut global_cards: Vec<Card>) -> i32 {
+    let mut total = 0;
+    while !global_cards.is_empty() {
+        println!("Processed: {} cards. Remaining: {:?}", total, &global_cards.len());
+        let first_card = global_cards.remove(0);
+        for i in 1..=first_card.count {
+            for j in 0..first_card.number_matching_values {
+                global_cards[j as usize].count += 1;
+            };
+            total += 1
         }
-
-        let current_card = global_cards.remove(0);
-        println!("Processing Card: {}.", &current_card.id);
-
-        for i in 0..current_card.number_matching_values {
-            let next_card_index = current_card.id + i;
-            if i < global_cards.len() as i32 {
-                let next_card: Card = reference_cards[next_card_index as usize].clone();
-                global_cards.push(next_card);
-            }
-        }
-
-        process_cards(acc + 1, global_cards, reference_cards)
     }
-    return process_cards(0, &mut global_cards.clone(), global_cards)
+    total
 }
 
 fn parse_card_id(left_of_colon: &Vec<Vec<&str>>) -> Vec<i32> {
