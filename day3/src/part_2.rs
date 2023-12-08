@@ -1,3 +1,5 @@
+use std::collections::VecDeque;
+
 pub fn process(content: &String) -> usize {
     let lines = content.split("\n").collect::<Vec<&str>>();
     let lines2d = lines
@@ -8,10 +10,22 @@ pub fn process(content: &String) -> usize {
 
     let thing = lines2d.iter().enumerate().map(|(r, line)| {
         for (c, char) in line.iter().enumerate() {
-            if char == '*' {
-                if get_left(r, c, cmp_lines) == "" {
-
+            if *char == '*' {
+                let mut numbers = Vec::<usize>::new();
+                match get_left(r, c, &lines2d) {
+                    Some(number) => numbers.push(number),
+                    None => {}
                 }
+                match get_right(r, c, &lines2d) {
+                    Some(number) => numbers.push(number),
+                    None => {}
+                }
+                match get_top(r, c, &lines2d) {
+                    Some(number) => numbers.push(number),
+                    None => {}
+                }
+
+                dbg![&numbers];
             }
         }
         0
@@ -40,14 +54,62 @@ pub fn process(content: &String) -> usize {
 //WORKING ON CHECKING LEFT && RIGHT FUNCTIONS
 //THEN WORK ON TOP AND BOTTOM FUNCTION UTILIZING THE CHECK LEFT AND RIGHT FUNCTIONS
 //
-fn get_left(start_row: usize, start_col: usize, grid: Vec<Vec<char>>) -> &'static str {
-    let mut current_char = '0';
-    let mut found_numbers = "".to_string();
-    let mut step = 0;
-    while current_char.is_numeric() {
+fn get_left(row: usize, start_col: usize, grid: &Vec<Vec<char>>) -> Option<usize> {
+    let mut found_symbol = false;
+    let mut found_numbers = VecDeque::<char>::new();
+    let mut step = 1;
+    while !found_symbol && step < 10000 {
+        let position = start_col as i32 - step;
+        if position < 0 {
+            break;
+        }
 
+        let new_char = grid[row][position as usize];
+
+        if new_char.is_numeric() {
+            found_numbers.push_back(new_char);
+        } else {
+            found_symbol = true;
+        }
+        step += 1;
     }
-    ""
+    let mut result_string = String::new();
+    for char in found_numbers.into_iter().rev() {
+        result_string.push(char);
+    }
+    match result_string.parse::<usize>() {
+        Ok(number) => Some(number),
+        Error => None,
+    }
+}
+
+fn get_right(row: usize, start_col: usize, grid: &Vec<Vec<char>>) -> Option<usize> {
+    let mut found_symbol = false;
+    let mut found_numbers = VecDeque::<char>::new();
+    let mut step = 1;
+    while !found_symbol && step < 10000 {
+        let position = start_col + step;
+        if position > grid[row].len() {
+            break;
+        }
+
+        let new_char = grid[row][position as usize];
+
+        if new_char.is_numeric() {
+            found_numbers.push_back(new_char);
+        } else {
+            found_symbol = true;
+        }
+        step += 1;
+    }
+    let mut result_string = String::new();
+    for char in found_numbers {
+        result_string.push(char);
+    }
+    match result_string.parse::<usize>() {
+        Ok(number) => Some(number),
+        Error => None,
+    }
 }
 
 
