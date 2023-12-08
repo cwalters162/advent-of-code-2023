@@ -12,14 +12,14 @@ fn main() {
 
     let contents = fs::read_to_string(file_path).expect("Should have been able to read the file");
 
-    let part1result = part1(&contents);
-    // let part2result = part2(&contents);
+    let part1result = process(&contents, false);
+    let part2result = process(&contents, true);
 
     println!("Part 1: {}", part1result);
-    // println!("Part 2: {}", part2result);
+    println!("Part 2: {}", part2result);
 }
 
-fn part1(contents: &String) -> i32 {
+fn process(contents: &String, with_joker: bool) -> i32 {
     let lines = contents.split("\n").collect::<Vec<_>>();
     let no_whitespace = lines
         .iter()
@@ -35,7 +35,7 @@ fn part1(contents: &String) -> i32 {
         .collect::<Vec<Hand>>();
 
     for mut hand in hands.iter_mut() {
-        hand.discover_hand_type();
+        hand.discover_hand_type(with_joker);
     }
 
     hands.sort_by(|left, right| left.hand_type.partial_cmp(&right.hand_type).unwrap());
@@ -46,8 +46,8 @@ fn part1(contents: &String) -> i32 {
         let left_cards = left.cards.chars().collect::<Vec<char>>();
         let right_cards = right.cards.chars().collect::<Vec<char>>();
         for i in 0..left.cards.len() {
-            let left_card = get_rank_from_char(left_cards[i]);
-            let right_card = get_rank_from_char(right_cards[i]);
+            let left_card = get_rank_from_char(left_cards[i], with_joker);
+            let right_card = get_rank_from_char(right_cards[i], with_joker);
             let result = left_card.partial_cmp(&right_card).unwrap();
             if result == Ordering::Equal {
                 continue;
@@ -57,9 +57,11 @@ fn part1(contents: &String) -> i32 {
         }
         Ordering::Equal
     });
-    hands.reverse();
 
     dbg![&hands];
+
+
+    hands.reverse();
 
     let bets = hands.iter().map(|hand| hand.bet);
     let mut bet_result = 0;
@@ -71,10 +73,6 @@ fn part1(contents: &String) -> i32 {
     bet_result
 }
 
-fn part2(contents: &String) -> i32 {
-    todo!()
-}
-
 #[derive(Debug)]
 struct Hand {
     hand_type: HandType,
@@ -83,7 +81,7 @@ struct Hand {
 }
 
 impl Hand {
-    fn discover_hand_type(&mut self) {
+    fn discover_hand_type(&mut self, with_joker: bool) {
         let mut found_cards = HashMap::new();
         for card in self.cards.chars() {
             if !found_cards.contains_key(&card) {
@@ -98,10 +96,15 @@ impl Hand {
         }
 
         let mut pairs = 0;
+        let mut four_kind = 0;
         let mut three_kind = false;
+        let mut joker_count = 0;
 
-        for card_count in found_cards.values() {
-            match card_count {
+        for (card, count) in found_cards {
+            if card == 'J' && with_joker {
+                joker_count += count;
+            }
+             match count {
                 2 => {
                     pairs += 1;
                 }
@@ -109,28 +112,82 @@ impl Hand {
                     three_kind = true;
                 }
                 4 => {
-                    self.hand_type = FOURKIND;
-                    return;
+                    four_kind += 1;
                 }
                 _ => {}
             }
         }
 
-        match (pairs, three_kind) {
-            (1, true) => {
-                self.hand_type = FULLHOUSE;
+        match (pairs, three_kind, four_kind) {
+
+            //2222J // four kind upgrade to five kind
+            //JJJJ1 // four kind upgrade to ive kind
+            //FOUR KIND
+            (0, false, 1) => {
+                if joker_count == 1 || joker_count == 4 {
+                    self.hand_type = FIVEKIND;
+                } else {
+                    self.hand_type = FOURKIND;
+                }
+            },
+            //33322 // full house
+            //333JJ // full house upgrade to five kind
+            //JJJ22 // full house upgrades five kind
+            //FULL HOUSE
+            (1, true, 0) => {
+                if joker_count >= 2 {
+                    self.hand_type = FIVEKIND;
+                } else {
+                    self.hand_type = FULLHOUSE;
+                }
             }
-            (0, true) => {
-                self.hand_type = THREEKIND;
+
+            //22234 //three kind
+            //222J3 //three kind upgrade to a four kind
+            //JJJ24 //THREE KIND upgrade to a four kind
+            // THREE KIND
+            (0, true, 0) => {
+                if joker_count == 1 || joker_count == 3 {
+                    self.hand_type = FOURKIND;
+                } else {
+                    self.hand_type = THREEKIND;
+                }
             }
-            (2, false) => {
-                self.hand_type = TWOPAIR;
+
+            //J2233 // two pair upgrade to a full house
+            //3JJ22 // two pair upgrade to four kind
+            //22334 // two pair
+            // TWO PAIR
+            (2, false, 0) => {
+                if joker_count == 1 {
+                    self.hand_type = FULLHOUSE;
+                } else if joker_count == 2 {
+                    self.hand_type = FOURKIND;
+                } else {
+                    self.hand_type = TWOPAIR;
+                }
             }
-            (1, false) => {
-                self.hand_type = ONEPAIR;
+
+            //JJ345 // one pair upraded to threekind
+            //22J45 // one pair upgraded to threekind
+            //22345 // one pair
+            // ONE PAIR
+            (1, false, 0) => {
+                if joker_count >= 1 {
+                    self.hand_type = THREEKIND;
+                } else {
+                    self.hand_type = ONEPAIR;
+                }
             }
-            (_, _) => {
-                self.hand_type = HIGHCARD;
+            //23J56 // high card upgraded to one pair
+            //23456 // high Card
+            // HIGH CARD
+            (_, _, _) => {
+                if joker_count == 1{
+                    self.hand_type = ONEPAIR;
+                } else {
+                    self.hand_type = HIGHCARD;
+                }
             }
         }
     }
@@ -163,14 +220,21 @@ enum Rank {
     FOUR,
     THREE,
     TWO,
+    JOKER,
 }
 
-fn get_rank_from_char(char: char) -> Rank {
+fn get_rank_from_char(char: char, with_joker: bool) -> Rank {
     match char {
         'A' => Rank::ACE,
         'K' => Rank::KING,
         'Q' => Rank::QUEEN,
-        'J' => Rank::JACK,
+        'J' => {
+            if with_joker {
+                Rank::JOKER
+            } else {
+                Rank::JACK
+            }
+        },
         'T' => Rank::TEN,
         '9' => Rank::NINE,
         '8' => Rank::EIGHT,
@@ -185,3 +249,4 @@ fn get_rank_from_char(char: char) -> Rank {
         }
     }
 }
+
