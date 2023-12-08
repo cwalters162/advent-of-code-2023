@@ -1,95 +1,53 @@
-pub fn process(p0: &String) -> usize {
+pub fn process(content: &String) -> usize {
+    let lines = content.split("\n").collect::<Vec<&str>>();
+    let lines2d = lines
+        .iter()
+        .map(|lines| lines.chars().collect::<Vec<_>>())
+        .collect::<Vec<Vec<_>>>();
+    let cmp_lines = lines2d.clone();
+
+    let thing = lines2d.iter().enumerate().map(|(r, line)| {
+        for (c, char) in line.iter().enumerate() {
+            if char == '*' {
+                if get_left(r, c, cmp_lines) == "" {
+
+                }
+            }
+        }
+        0
+    }).collect::<Vec<_>>();
+
+    //find asterisk
+    //Check neighbors for any numeric.
+    // if numeric found
+    //  push current char to current_number_string
+    //  replace with period
+    // then check left if number,
+    // push number to back of current_number_string
+    // if perid is found break
+    // then check right
+    // if number push to front of current_number_string
+    // if period found break.
+    //if number is found take it and replace it with a period.
+    //continue to check left and right until end of number is found.
+    //
+
+    dbg!(thing);
     0
 }
 
-fn check_neighbors(r: usize, c: usize, lines: &Vec<&str>) -> bool {
-    if r == 0 && c == 0 {
-        //is_top_left?
-        check_middle_right(r, c, lines)
-            || check_bottom_middle(r, c, lines)
-            || check_bottom_right(r, c, lines)
-    } else if r == 0 && c == lines[r].len() - 1 {
-        //is_top_right?
-        check_middle_left(r, c, lines)
-            || check_bottom_left(r, c, lines)
-            || check_bottom_middle(r, c, lines)
-    } else if r == lines.len() - 1 && c == 0 {
-        //is_bottom_left?
-        check_top_middle(r, c, lines)
-            || check_top_right(r, c, lines)
-            || check_middle_right(r, c, lines)
-    } else if r == lines.len() - 1 && c == lines[r].len() - 1 {
-        //is_bottom_right?
-        check_top_left(r, c, lines)
-            || check_top_middle(r, c, lines)
-            || check_middle_left(r, c, lines)
-    } else if r == lines.len() - 1 && c != 0 && c != lines[r].len() - 1 {
-        //is_bottom_middle?
-        check_middle_left(r, c, lines)
-            || check_middle_right(r, c, lines)
-            || check_top_left(r, c, lines)
-            || check_top_middle(r, c, lines)
-            || check_top_right(r, c, lines)
-    } else if r == 0 && r != lines.len() - 1 && c != 0 && c != lines[r].len() - 1 {
-        // Top middle
-        check_middle_left(r, c, lines)
-            || check_middle_right(r, c, lines)
-            || check_bottom_left(r, c, lines)
-            || check_bottom_middle(r, c, lines)
-            || check_bottom_right(r, c, lines)
-    } else if r != 0 && r != lines.len() - 1 && c != 0 && c != lines[r].len() - 1 {
-        //Middle of the 2d array
-        check_top_left(r, c, lines)
-            || check_top_middle(r, c, lines)
-            || check_top_right(r, c, lines)
-            || check_middle_left(r, c, lines)
-            || check_middle_right(r, c, lines)
-            || check_bottom_left(r, c, lines)
-            || check_bottom_middle(r, c, lines)
-            || check_bottom_right(r, c, lines)
-    } else {
-        false
+//
+//WORKING ON CHECKING LEFT && RIGHT FUNCTIONS
+//THEN WORK ON TOP AND BOTTOM FUNCTION UTILIZING THE CHECK LEFT AND RIGHT FUNCTIONS
+//
+fn get_left(start_row: usize, start_col: usize, grid: Vec<Vec<char>>) -> &'static str {
+    let mut current_char = '0';
+    let mut found_numbers = "".to_string();
+    let mut step = 0;
+    while current_char.is_numeric() {
+
     }
-}
-
-fn check_top_left(r: usize, c: usize, lines: &Vec<&str>) -> bool {
-    let location: char = lines[r - 1].chars().collect::<Vec<char>>()[c - 1];
-    location.is_numeric()
-}
-
-fn check_top_middle(r: usize, c: usize, lines: &Vec<&str>) -> bool {
-    let location: char = lines[r - 1].chars().collect::<Vec<char>>()[c];
-    location.is_numeric()
-}
-
-fn check_top_right(r: usize, c: usize, lines: &Vec<&str>) -> bool {
-    let location: char = lines[r - 1].chars().collect::<Vec<char>>()[c + 1];
-    location.is_numeric()
-}
-
-fn check_middle_left(r: usize, c: usize, lines: &Vec<&str>) -> bool {
-    let location: char = lines[r].chars().collect::<Vec<char>>()[c - 1];
-    location.is_numeric()
-}
-
-fn check_middle_right(r: usize, c: usize, lines: &Vec<&str>) -> bool {
-    let location: char = lines[r].chars().collect::<Vec<char>>()[c + 1];
-    location.is_numeric()
-}
-
-fn check_bottom_left(r: usize, c: usize, lines: &Vec<&str>) -> bool {
-    let location: char = lines[r + 1].chars().collect::<Vec<char>>()[c - 1];
-    location.is_numeric()
-}
-
-fn check_bottom_middle(r: usize, c: usize, lines: &Vec<&str>) -> bool {
-    let location: char = lines[r + 1].chars().collect::<Vec<char>>()[c];
-    location.is_numeric()
-}
-
-fn check_bottom_right(r: usize, c: usize, lines: &Vec<&str>) -> bool {
-    let location: char = lines[r + 1].chars().collect::<Vec<char>>()[c + 1];
-    location.is_numeric()
+    ""
 }
 
 

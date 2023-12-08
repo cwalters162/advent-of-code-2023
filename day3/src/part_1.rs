@@ -46,7 +46,6 @@ pub fn process(content: &String) -> usize {
 
     let numbers_near_symbols = strings_of_numbers_near_symbols.iter()
         .map(|string| string.parse::<usize>().unwrap()).collect::<Vec<usize>>();
-
     numbers_near_symbols.iter().sum()
 }
 
