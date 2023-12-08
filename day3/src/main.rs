@@ -11,73 +11,65 @@ fn main() {
     println!("Sum of Gear Numbers: {}", result.1);
 }
 
-fn process(content: &String) -> (u32, u32) {
+fn process(content: &String) -> (usize, usize) {
     let lines = content.split("\n").collect::<Vec<&str>>();
     let cmp_lines = lines.clone();
 
-    let rows_of_dirty_not_validated_numbers: Vec<_> = lines
+    let lines2d = lines
+        .iter()
+        .map(|lines| lines.chars().collect::<Vec<_>>())
+        .collect::<Vec<Vec<_>>>();
+
+    let strings_of_numbers_near_symbols = lines2d
         .iter()
         .enumerate()
-        .map(|(r, line)| {
-            let mut chars_with_metadata: Vec<Vec<CharMetadata>> = Vec::new();
-            let mut current_number_vec: Vec<CharMetadata> = Vec::new();
-
-            for (c, char) in line.chars().enumerate() {
+        .filter_map(|(r, line)| {
+            let mut numbers_on_this_line = Vec::<String>::new();
+            let mut string_of_number_chars = "".to_string();
+            let mut near_symbol = false;
+            // if char is number
+            // check if symbol is near
+            // if symbol is near
+            // set symbol near to true
+            // continue until end of number
+            // push number to numbers vec.
+            // reset
+            for (c, char) in line.iter().enumerate() {
                 if char.is_numeric() {
-                    current_number_vec.push(CharMetadata {
-                        c: char,
-                        near_symbol: check_neighbors(r, c, &cmp_lines),
-                    });
-                    continue;
-                } else {
-                    if c == 0 {
-                        continue;
+                    if !near_symbol && check_neighbors(r, c, &cmp_lines) {
+                        near_symbol = true
                     }
-                    let middle_left = line.chars().map(|c| c).collect::<Vec<char>>()[c - 1];
-
-                    if middle_left.is_numeric() {
-                        chars_with_metadata.push(current_number_vec.clone());
-                        current_number_vec = Vec::new();
+                    string_of_number_chars.push(char.clone());
+                    if c == line.len() - 1 && near_symbol{
+                        numbers_on_this_line.push(string_of_number_chars.clone());
+                        string_of_number_chars = "".to_string();
+                        near_symbol = false;
+                    }
+                } else {
+                    if string_of_number_chars.len() == 0 || !near_symbol {
+                        string_of_number_chars = "".to_string();
                     } else {
-                        continue;
+                        numbers_on_this_line.push(string_of_number_chars.clone());
+                        string_of_number_chars = "".to_string();
+                        near_symbol = false;
                     }
                 }
             }
-            chars_with_metadata
-        })
-        .collect();
-    let rows_of_not_validated_numbers: Vec<_> = rows_of_dirty_not_validated_numbers
-        .iter()
-        .filter(|row| row.len() >= 1)
-        .collect();
-    let validated_chars: Vec<_> = rows_of_not_validated_numbers
-        .iter()
-        .filter_map(|row| {
-            let result: Vec<_> = row
-                .into_iter()
-                .filter_map(|chars| {
-                    let result = chars
-                        .iter()
-                        .filter(|char| char.near_symbol)
-                        .collect::<Vec<&CharMetadata>>();
-                    if result.len() >= 1 {
-                        let mut number_string = String::new();
-                        let _ = chars.iter().map(|c| number_string.push(c.c)).collect::<Vec<_>>();
-                        let number: u32 = number_string.parse().unwrap();
-                        Some(number)
-                    } else {
-                        None
-                    }
-                })
-                .collect();
-            Some(result)
-        })
-        .collect();
+            if numbers_on_this_line.len() == 0 {
+                None
+            } else {
+                Some(numbers_on_this_line)
+            }
+        }).flatten().collect::<Vec<_>>();
 
-    let flat = validated_chars.iter().flatten().collect::<Vec<&u32>>();
-    let result_sum: u32 = flat.iter().copied().clone().sum();
 
-    (result_sum, 0u32)
+
+    let numbers_near_symbols = strings_of_numbers_near_symbols.iter()
+        .map(|string| string.parse::<usize>().unwrap()).collect::<Vec<usize>>();
+
+    dbg![&numbers_near_symbols];
+    (numbers_near_symbols.iter().sum(), 0usize)
+    // (0, 0)
 }
 
 fn check_neighbors(r: usize, c: usize, lines: &Vec<&str>) -> bool {
@@ -110,9 +102,9 @@ fn check_neighbors(r: usize, c: usize, lines: &Vec<&str>) -> bool {
             || check_top_right(r, c, lines)
     } else if r == 0 && r != lines.len() - 1 && c != 0 && c != lines[r].len() - 1 {
         // Top middle
-            check_middle_left(r,c, lines)
-            || check_middle_right(r, c, lines) ||
-                check_bottom_left(r, c, lines)
+        check_middle_left(r, c, lines)
+            || check_middle_right(r, c, lines)
+            || check_bottom_left(r, c, lines)
             || check_bottom_middle(r, c, lines)
             || check_bottom_right(r, c, lines)
     } else if r != 0 && r != lines.len() - 1 && c != 0 && c != lines[r].len() - 1 {
@@ -173,16 +165,11 @@ fn is_ascii_graphic_excluding_period(char: char) -> bool {
     matches!(char, '!'..='-' | '/' | ':'..='@' | '['..='`' | '{'..='~')
 }
 
-#[derive(Clone, Debug)]
-struct CharMetadata {
-    c: char,
-    near_symbol: bool,
-}
-
 #[test]
 fn test_part_1() {
-    let content = "467..114..\n...*......\n..35..633.\n......#...\n617*......\n.....+.58.\n..592.....\n......755.\n...$.*....\n.664.598..".to_string();
+    let content = "467..114..\n...*......\n..35..633.\n......#...\n617*......\n.....+.58.\n..592.....\n.......755\n....$.*...\n..664.598.".to_string();
     let (result, _) = process(&content);
+    dbg!(&result);
     assert_eq!(result, 4361);
 }
 #[test]
