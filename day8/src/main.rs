@@ -1,4 +1,5 @@
 use std::{env, fs};
+use std::thread::current;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -7,16 +8,6 @@ fn main() {
 
     let contents = fs::read_to_string(file_path).expect("Should have been able to read the file");
     let lines = contents.split("\n").collect::<Vec<&str>>();
-
-
-    let part1result = part1(&lines);
-    // let part2result = part2(&contents);
-
-    println!("Part 1: {}", part1result);
-    // println!("Part 2: {}", part2result);
-}
-
-fn part1(lines: &Vec<&str>) -> i32 {
     let removed_returns = lines.iter().map(|line| {
         line.replace("\r", "")
     }).collect::<Vec<_>>();
@@ -44,6 +35,16 @@ fn part1(lines: &Vec<&str>) -> i32 {
         }
 
     }).collect::<Vec<Node>>();
+
+    // let part1result = part1(instructions, &nodes);
+    let part2result = part2(instructions, &nodes);
+
+    // println!("Part 1: {}", part1result);
+    println!("Part 2: {}", part2result);
+}
+
+fn part1(instructions: &String, nodes: &Vec<Node>) -> i32 {
+
     let mut current_instructions = instructions.clone().chars().rev().collect::<Vec<char>>();
     let mut current_node = nodes.iter().find(|node| node.id == "AAA").expect("Unable to find node 'AAA'");
     let mut steps = 0;
@@ -65,8 +66,35 @@ fn part1(lines: &Vec<&str>) -> i32 {
     }
 }
 
-fn part2(contents: &String) -> i32 {
-    todo!()
+fn part2(instructions: &String, nodes: &Vec<Node>) -> i32 {
+    let mut steps = 0;
+    let nodes_ending_in_a = nodes.iter().filter_map(|node| if node.id.clone().into_boxed_str().ends_with('A') { Some(node) } else { None }).collect::<Vec<_>>();
+    let mut looking = true;
+
+    for (i, &node) in nodes_ending_in_a.iter().enumerate() {
+        println!("Nodes completed: {}/{}", &i, nodes_ending_in_a.len());
+        let mut current_node = node;
+        let mut current_instructions = instructions.clone().chars().rev().collect::<Vec<char>>();
+
+        while looking == true {
+            println!("Step: {}", steps);
+            if current_node.id.clone().into_boxed_str().ends_with('Z') {
+                looking = false;
+            }
+            steps += 1;
+            if current_instructions.len() == 0 {
+                current_instructions = instructions.clone().chars().rev().collect::<Vec<char>>();
+            }
+            let ins = current_instructions.pop().expect("Should have an instruction");
+
+            match ins {
+                'L' => current_node = nodes.iter().find(|node| node.id == current_node.left).expect(&*format!("Unable to find node: {}", current_node.left)),
+                'R' => current_node = nodes.iter().find(|node| node.id == current_node.right).expect(&*format!("Unable to find node: {}", current_node.right)),
+                _ => {panic!("Unknown instruction: {}", ins)}
+            }
+        }
+    }
+    steps
 }
 
 #[derive(Debug)]
